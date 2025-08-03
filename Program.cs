@@ -6,6 +6,7 @@ using MinimalApi.Dominio.Interfaces;
 using MinimalApi.Dominio.DTOs;
 using MinimalApi.Dominio.ModelViews;
 using MinimalApi.Dominio.Entidades;
+using MinimalApi.Dominio.Enums;
 
 #region Builder
 var builder = WebApplication.CreateBuilder(args);
@@ -37,6 +38,65 @@ app.MapPost("/administradores/login", ([FromBody] LoginDTO loginDTO, IAdministra
     else
         return Results.Unauthorized();
 }).WithTags("Administradores");
+
+app.MapPost("/administradores", ([FromBody] AdministradorDTO administradorDTO, IAdministradorServico administradorServico) =>
+{
+    var validacao = new ErrosDeValidacao { Mensagens = new List<string>() };
+    if (string.IsNullOrWhiteSpace(administradorDTO.Email))
+        validacao.Mensagens.Add("O email não pode ser vazio.");
+
+    if (string.IsNullOrWhiteSpace(administradorDTO.Senha))
+        validacao.Mensagens.Add("A senha não pode ficar em branco.");
+
+    if (administradorDTO.Perfil == null)
+        validacao.Mensagens.Add("O perfil não pode ser nulo.");
+
+    if (validacao.Mensagens.Count > 0)
+        return Results.BadRequest(validacao);
+
+    var administrador = new Administrador
+    {
+        Perfil = administradorDTO.Perfil.ToString() ?? Perfil.Editor.ToString(),
+        Email = administradorDTO.Email,
+        Senha = administradorDTO.Senha
+    };
+
+    administradorServico.Incluir(administrador);
+    var administradorView = new AdministradorModelView
+    {
+        Id = administrador.Id,
+        Email = administrador.Email,
+        Perfil = administrador.Perfil.ToString()
+    };
+    return Results.Created($"/administrador/{administrador.Id}", administradorView);
+}).WithTags("Administradores");
+
+app.MapGet("/administradores", ([FromQuery] int? pagina, IAdministradorServico administradorServico) =>
+{
+    var administradores = administradorServico.Todos(pagina);
+    var administradoresView = administradores.Select(a => new AdministradorModelView
+    {
+        Id = a.Id,
+        Email = a.Email,
+        Perfil = a.Perfil.ToString()
+    }).ToList();
+    return Results.Ok(administradoresView);
+}).WithTags("Administradores");
+
+app.MapGet("/administradores/{id}", ([FromRoute] int id, IAdministradorServico administradorServico) =>
+{
+    var administrador = administradorServico.BuscaPorId(id);
+    if (administrador == null)
+        return Results.NotFound();
+    var administradorView = new AdministradorModelView
+    {
+        Id = administrador.Id,
+        Email = administrador.Email,
+        Perfil = administrador.Perfil.ToString()
+    };
+    return Results.Ok(administradorView);
+}).WithTags("Administradores");
+
 #endregion
 
 #region Veículos
