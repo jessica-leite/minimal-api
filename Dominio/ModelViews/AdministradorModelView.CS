@@ -1,6 +1,3 @@
-
-using MinimalApi.Dominio.Enums;
-
 namespace MinimalApi.Dominio.ModelViews;
 
 public record AdministradorModelView
