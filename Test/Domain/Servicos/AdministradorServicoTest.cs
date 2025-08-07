@@ -66,6 +66,6 @@ public class AdministradorServicoTest
         var adminBuscado = administradorServico.BuscaPorId(administrador.Id);
 
         // Assert
-        Assert.AreEqual(1, adminBuscado.Id);
+        Assert.AreEqual(1, adminBuscado?.Id);
     }
 }
