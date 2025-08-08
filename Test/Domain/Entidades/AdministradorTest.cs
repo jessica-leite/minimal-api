@@ -23,4 +23,17 @@ public class AdministradorTest
         Assert.AreEqual("123456", administrador.Senha);
         Assert.AreEqual("Adm", administrador.Perfil);
     }
+
+    [TestMethod]
+    public void TestarConstrutor()
+    {
+        // Arrange
+        //Act
+        var administrador = new Administrador("editor@test.com", "1234567", "Editor");
+
+        // Assert
+        Assert.AreEqual("editor@test.com", administrador.Email);
+        Assert.AreEqual("1234567", administrador.Senha);
+        Assert.AreEqual("Editor", administrador.Perfil);
+    }
 }

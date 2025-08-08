@@ -23,4 +23,17 @@ public class VeiculoTest
         Assert.AreEqual("Toyota", veiculo.Marca);
         Assert.AreEqual("Corolla", veiculo.Nome);
     }
+
+    [TestMethod]
+    public void TestarConstrutor()
+    {
+        // Arrange 
+        // Act
+        var veiculo = new Veiculo("Gol", "Volkswagen", 2023);
+
+        // Assert
+        Assert.AreEqual(2023, veiculo.Ano);
+        Assert.AreEqual("Volkswagen", veiculo.Marca);
+        Assert.AreEqual("Gol", veiculo.Nome);
+    }
 }
