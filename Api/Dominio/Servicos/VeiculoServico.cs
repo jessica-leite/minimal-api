@@ -45,11 +45,6 @@ public class VeiculoServico : IVeiculoServico
             query = query.Where(v => EF.Functions.Like(v.Nome.ToLower(), $"%{nome.ToLower()}%"));
         }
 
-        // if (!string.IsNullOrEmpty(marca))
-        // {
-        //     query = query.Where(v => EF.Functions.Like(v.Marca.ToLower(), $"%{marca.ToLower()}%"));
-        // }
-
         int itensPorPagina = 10;
         if (pagina != null)
         {

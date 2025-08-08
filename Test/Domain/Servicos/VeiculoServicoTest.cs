@@ -7,7 +7,7 @@ using MinimalApi.Infraestrutura.Db;
 namespace Test.Domain.Servicos;
 
 [TestClass]
-public class AdministradorServicoTest
+public class VeiculoServicoTest
 {
     private DbContexto CriarContextoDeTeste()
     {
@@ -23,26 +23,26 @@ public class AdministradorServicoTest
     }
 
     [TestMethod]
-    public void TestandoSalvarAdministrador()
+    public void TestandoSalvarVeiculo()
     {
         // Arrange
         var context = CriarContextoDeTeste();
-        context.Database.ExecuteSqlRaw("TRUNCATE TABLE Administradores");
+        context.Database.ExecuteSqlRaw("TRUNCATE TABLE Veiculos");
 
-        var administrador = new Administrador
+        var veiculo = new Veiculo
         {
-            Email = "admin@test.com",
-            Senha = "123456",
-            Perfil = "Adm"
+            Nome = "Fusca",
+            Marca = "Volkswagen",
+            Ano = 1970
         };
 
-        var administradorServico = new AdministradorServico(context);
+        var veiculoServico = new VeiculoServico(context);
 
         // Act
-        administradorServico.Incluir(administrador);
+        veiculoServico.Incluir(veiculo);
 
         // Assert
-        Assert.AreEqual(1, administradorServico.Todos(1).Count);
+        Assert.AreEqual(1, veiculoServico.Todos().Count);
     }
 
     [TestMethod]
@@ -50,22 +50,22 @@ public class AdministradorServicoTest
     {
         // Arrange
         var context = CriarContextoDeTeste();
-        context.Database.ExecuteSqlRaw("TRUNCATE TABLE Administradores");
+        context.Database.ExecuteSqlRaw("TRUNCATE TABLE Veiculos");
 
-        var administrador = new Administrador
+        var veiculo = new Veiculo
         {
-            Email = "admin@test.com",
-            Senha = "123456",
-            Perfil = "Adm"
+            Nome = "Fusca",
+            Marca = "Volkswagen",
+            Ano = 1970
         };
 
-        var administradorServico = new AdministradorServico(context);
+        var veiculoServico = new VeiculoServico(context);
 
         // Act
-        administradorServico.Incluir(administrador);
-        var adminBuscado = administradorServico.BuscaPorId(administrador.Id);
+        veiculoServico.Incluir(veiculo);
+        var veiculoBuscado = veiculoServico.BuscaPorId(veiculo.Id);
 
         // Assert
-        Assert.AreEqual(1, adminBuscado?.Id);
+        Assert.AreEqual(1, veiculoBuscado?.Id);
     }
 }

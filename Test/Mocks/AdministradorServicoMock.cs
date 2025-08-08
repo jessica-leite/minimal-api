@@ -21,6 +21,20 @@ public class AdministradorServicoMock : IAdministradorServico
         }
     };
 
+    public void Apagar(Administrador administrador)
+    {
+        administradores.Remove(administrador);
+    }
+
+    public void Atualizar(Administrador administrador)
+    {
+        var index = administradores.FindIndex(a => a.Id == administrador.Id);
+        if (index != -1)
+        {
+            administradores[index] = administrador;
+        }
+    }
+
     public Administrador? BuscaPorId(int id)
     {
         return administradores.Find(a => a.Id == id);
