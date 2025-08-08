@@ -62,7 +62,7 @@ public class Startup
                 Scheme = "Bearer",
                 BearerFormat = "JWT"
             });
-        
+
             options.AddSecurityRequirement(new OpenApiSecurityRequirement
             {
                 {
@@ -85,6 +85,17 @@ public class Startup
                 ServerVersion.AutoDetect(Configuration.GetConnectionString("MySql"))
             )
         );
+        
+        services.AddCors(options =>
+        {
+            options.AddDefaultPolicy(
+                builder =>
+                {
+                    builder.AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader();
+                });
+        });
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -96,6 +107,8 @@ public class Startup
 
         app.UseAuthentication();
         app.UseAuthorization();
+
+        app.UseCors("*");
 
         app.UseEndpoints(endpoints =>
         {
@@ -125,6 +138,21 @@ public class Startup
                 return new JwtSecurityTokenHandler().WriteToken(token);
             }
 
+            ErrosDeValidacao ValidaAdministradorDTO(AdministradorDTO administradorDTO)
+            {
+                var validacao = new ErrosDeValidacao { Mensagens = new List<string>() };
+                if (string.IsNullOrWhiteSpace(administradorDTO.Email))
+                    validacao.Mensagens.Add("O email não pode ser vazio.");
+
+                if (string.IsNullOrWhiteSpace(administradorDTO.Senha))
+                    validacao.Mensagens.Add("A senha não pode ficar em branco.");
+
+                if (administradorDTO.Perfil == null)
+                    validacao.Mensagens.Add("O perfil não pode ser nulo.");
+
+                return validacao;
+            }
+
             endpoints.MapPost("/administradores/login", ([FromBody] LoginDTO loginDTO, IAdministradorServico administradorServico) => {
                 var administrador = administradorServico.Login(loginDTO);
                 if (administrador != null) {
@@ -142,21 +170,12 @@ public class Startup
 
             endpoints.MapPost("/administradores", ([FromBody] AdministradorDTO administradorDTO, IAdministradorServico administradorServico) =>
             {
-                var validacao = new ErrosDeValidacao { Mensagens = new List<string>() };
-                if (string.IsNullOrWhiteSpace(administradorDTO.Email))
-                    validacao.Mensagens.Add("O email não pode ser vazio.");
-
-                if (string.IsNullOrWhiteSpace(administradorDTO.Senha))
-                    validacao.Mensagens.Add("A senha não pode ficar em branco.");
-
-                if (administradorDTO.Perfil == null)
-                    validacao.Mensagens.Add("O perfil não pode ser nulo.");
-
+                var validacao = ValidaAdministradorDTO(administradorDTO);
                 if (validacao.Mensagens.Count > 0)
                     return Results.BadRequest(validacao);
 
-                var administrador = new Administrador
-                {
+               var administrador = new Administrador
+               {
                     Perfil = administradorDTO.Perfil.ToString() ?? Perfil.Editor.ToString(),
                     Email = administradorDTO.Email,
                     Senha = administradorDTO.Senha
@@ -200,6 +219,39 @@ public class Startup
                     Perfil = administrador.Perfil.ToString()
                 };
                 return Results.Ok(administradorView);
+            }).RequireAuthorization()
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "Adm"})
+            .WithTags("Administradores");
+
+            endpoints.MapPut("/administradores/{id}", ([FromRoute] int id, [FromBody] AdministradorDTO administradorDTO, IAdministradorServico administradorServico) =>
+            {
+                var administrador = administradorServico.BuscaPorId(id);
+                if (administrador == null)
+                    return Results.NotFound();
+
+                var validacao = ValidaAdministradorDTO(administradorDTO);
+                if (validacao.Mensagens.Count > 0)
+                    return Results.BadRequest(validacao);
+
+                administrador.Email = administradorDTO.Email;
+                administrador.Senha = administradorDTO.Senha;
+                administrador.Perfil = administradorDTO.Perfil.ToString() ?? Perfil.Editor.ToString();
+
+                administradorServico.Atualizar(administrador);
+
+                return Results.Ok(administrador);
+            }).RequireAuthorization()
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "Adm"})
+            .WithTags("Administradores");
+
+            endpoints.MapDelete("/administradores/{id}", ([FromRoute] int id, IAdministradorServico administradorServico) =>
+            {
+                var administrador = administradorServico.BuscaPorId(id);
+                if (administrador == null)
+                    return Results.NotFound();
+
+                administradorServico.Apagar(administrador);
+                return Results.NoContent();
             }).RequireAuthorization()
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Adm"})
             .WithTags("Administradores");
